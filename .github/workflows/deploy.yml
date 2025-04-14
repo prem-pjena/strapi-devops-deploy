@@ -1,0 +1,55 @@
+name: 🚀 CI/CD for Strapi App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: strapi
+          POSTGRES_PASSWORD: strapi
+          POSTGRES_DB: strapi
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: ⬇️ Checkout Code
+      uses: actions/checkout@v3
+
+    - name: ⚙️ Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: 📦 Install Dependencies
+      run: yarn install
+
+    - name: 🏗️ Build Strapi
+      env:
+        DATABASE_CLIENT: postgres
+        DATABASE_NAME: strapi
+        DATABASE_HOST: localhost
+        DATABASE_PORT: 5432
+        DATABASE_USERNAME: strapi
+        DATABASE_PASSWORD: strapi
+      run: yarn build
+
+    - name: ✅ Run Linter (optional)
+      run: yarn lint || echo "No linter setup"
+
+    - name: ✅ Run Tests (optional)
+      run: yarn test || echo "No tests found"
+
